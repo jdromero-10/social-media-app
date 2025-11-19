@@ -1,0 +1,77 @@
+# ----------------------------------------
+# 1. DEPENDENCIAS Y CARPETAS DE SALIDA GLOBALES
+# Estas reglas aplican a cualquier subproyecto que las use.
+# ----------------------------------------
+
+# Dependencias del paquete
+node_modules
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Directorios de compilación y salida (Build/Dist)
+# El slash inicial asegura que se ignoren en cualquier subdirectorio (FE/BE)
+/dist
+/dist-ssr
+/build
+
+# Directorios temporales y de caché
+.temp
+.tmp
+/coverage
+/.nyc_output
+pids
+*.pid
+*.seed
+*.pid.lock
+
+
+# ----------------------------------------
+# 2. ARCHIVOS DE ENTORNO Y LOCALES
+# ----------------------------------------
+
+# Variables de entorno (¡CRÍTICO para la seguridad!)
+.env
+.env.development.local
+.env.test.local
+.env.production.local
+.env.local
+*.local
+
+
+# ----------------------------------------
+# 3. ARCHIVOS DE SISTEMA OPERATIVO E IDEs
+# ----------------------------------------
+
+# macOS
+.DS_Store
+
+# IDEs (Visual Studio Code, IntelliJ, etc.)
+.idea
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# VSCode (Ignora la carpeta completa, luego re-incluye archivos de configuración compartidos)
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# Node.js Diagnostic reports
+report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
