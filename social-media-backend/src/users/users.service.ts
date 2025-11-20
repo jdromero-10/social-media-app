@@ -146,4 +146,22 @@ export class UsersService {
     // Guardar y retornar el usuario actualizado
     return await this.usersRepository.save(user);
   }
+
+  /**
+   * Actualiza la contraseña de un usuario (usado en recuperación de contraseña)
+   * @param userId - UUID del usuario
+   * @param hashedPassword - Contraseña hasheada
+   * @returns Usuario actualizado
+   * @throws NotFoundException si el usuario no existe
+   */
+  async updatePassword(userId: string, hashedPassword: string): Promise<User> {
+    const user = await this.usersRepository.findOne({ where: { id: userId } });
+
+    if (!user) {
+      throw new NotFoundException(`Usuario con ID ${userId} no encontrado`);
+    }
+
+    user.password = hashedPassword;
+    return await this.usersRepository.save(user);
+  }
 }

@@ -41,18 +41,29 @@ var __importStar = (this && this.__importStar) || (function () {
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
+var __param = (this && this.__param) || function (paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AuthService = void 0;
 const common_1 = require("@nestjs/common");
+const typeorm_1 = require("@nestjs/typeorm");
+const typeorm_2 = require("typeorm");
 const jwt_1 = require("@nestjs/jwt");
 const bcrypt = __importStar(require("bcrypt"));
 const users_service_1 = require("../users/users.service");
+const email_service_1 = require("../email/email.service");
+const password_reset_code_entity_1 = require("./entities/password-reset-code.entity");
 let AuthService = class AuthService {
     usersService;
     jwtService;
-    constructor(usersService, jwtService) {
+    emailService;
+    passwordResetCodeRepository;
+    constructor(usersService, jwtService, emailService, passwordResetCodeRepository) {
         this.usersService = usersService;
         this.jwtService = jwtService;
+        this.emailService = emailService;
+        this.passwordResetCodeRepository = passwordResetCodeRepository;
     }
     async register(registerDto) {
         console.log('=== INICIO REGISTRO ===');
@@ -118,6 +129,89 @@ let AuthService = class AuthService {
             message: `El ${fieldName} ya está en uso.`,
         };
     }
+    async forgotPassword(forgotPasswordDto) {
+        const user = await this.usersService.getByEmail(forgotPasswordDto.email);
+        if (!user) {
+            return {
+                message: 'Si el email existe, recibirás un código de recuperación en breve.',
+            };
+        }
+        const code = this.generateResetCode();
+        const expiresAt = new Date();
+        expiresAt.setMinutes(expiresAt.getMinutes() + 15);
+        const resetCode = this.passwordResetCodeRepository.create({
+            userId: user.id,
+            code,
+            expiresAt,
+            used: false,
+        });
+        await this.passwordResetCodeRepository.save(resetCode);
+        await this.emailService.sendPasswordResetCode(user.email, code);
+        return {
+            message: 'Si el email existe, recibirás un código de recuperación en breve.',
+        };
+    }
+    async verifyCode(verifyCodeDto) {
+        const user = await this.usersService.getByEmail(verifyCodeDto.email);
+        if (!user) {
+            throw new common_1.NotFoundException('Usuario no encontrado');
+        }
+        const resetCode = await this.passwordResetCodeRepository.findOne({
+            where: {
+                userId: user.id,
+                code: verifyCodeDto.code,
+                used: false,
+            },
+            order: {
+                createdAt: 'DESC',
+            },
+        });
+        if (!resetCode) {
+            throw new common_1.BadRequestException('Código inválido');
+        }
+        if (new Date() > resetCode.expiresAt) {
+            throw new common_1.BadRequestException('El código ha expirado');
+        }
+        return {
+            valid: true,
+            message: 'Código verificado correctamente',
+        };
+    }
+    async resetPassword(resetPasswordDto) {
+        if (resetPasswordDto.newPassword !== resetPasswordDto.confirmPassword) {
+            throw new common_1.BadRequestException('Las contraseñas no coinciden');
+        }
+        const user = await this.usersService.getByEmail(resetPasswordDto.email);
+        if (!user) {
+            throw new common_1.NotFoundException('Usuario no encontrado');
+        }
+        const resetCode = await this.passwordResetCodeRepository.findOne({
+            where: {
+                userId: user.id,
+                code: resetPasswordDto.code,
+                used: false,
+            },
+            order: {
+                createdAt: 'DESC',
+            },
+        });
+        if (!resetCode) {
+            throw new common_1.BadRequestException('Código inválido');
+        }
+        if (new Date() > resetCode.expiresAt) {
+            throw new common_1.BadRequestException('El código ha expirado');
+        }
+        const hashedPassword = await bcrypt.hash(resetPasswordDto.newPassword, 10);
+        await this.usersService.updatePassword(user.id, hashedPassword);
+        resetCode.used = true;
+        await this.passwordResetCodeRepository.save(resetCode);
+        return {
+            message: 'Contraseña restablecida exitosamente',
+        };
+    }
+    generateResetCode() {
+        return Math.floor(100000 + Math.random() * 900000).toString();
+    }
     async buildAuthResponse(userId, email) {
         const payload = { sub: userId, email };
         const accessToken = this.jwtService.sign(payload);
@@ -141,7 +235,10 @@ let AuthService = class AuthService {
 exports.AuthService = AuthService;
 exports.AuthService = AuthService = __decorate([
     (0, common_1.Injectable)(),
+    __param(3, (0, typeorm_1.InjectRepository)(password_reset_code_entity_1.PasswordResetCode)),
     __metadata("design:paramtypes", [users_service_1.UsersService,
-        jwt_1.JwtService])
+        jwt_1.JwtService,
+        email_service_1.EmailService,
+        typeorm_2.Repository])
 ], AuthService);
 //# sourceMappingURL=auth.service.js.map

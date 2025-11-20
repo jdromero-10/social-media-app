@@ -9,9 +9,9 @@ import { PostType } from '../entities/posts.entity';
 
 export class CreatePostDto {
   @IsString()
-  @IsNotEmpty({ message: 'El título es requerido' })
+  @IsOptional()
   @MaxLength(255, { message: 'El título no puede exceder 255 caracteres' })
-  title: string;
+  title?: string | null;
 
   @IsString()
   @IsOptional()

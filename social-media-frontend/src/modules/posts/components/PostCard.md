@@ -27,15 +27,18 @@ interface PostCardProps {
   - Eliminar: Elimina el post con confirmación
 
 ### Contenido
-- **Título**: Título del post (siempre visible)
-- **Descripción**: Descripción opcional del post
-- **Contenido**: Contenido de texto del post
+- **Contenido**: Contenido de texto del post (solo se muestra si existe)
 - **Formato**: Respeta saltos de línea con `whitespace-pre-wrap`
+- **Estilo**: Texto base (`text-base`) con espaciado relajado (`leading-relaxed`) para mejor legibilidad
 
 ### Imágenes
 - Usa el componente `ImageCarousel` para mostrar imágenes
 - Si hay múltiples imágenes, muestra un carrusel con controles
 - Si hay una sola imagen, la muestra directamente
+- **Tamaño establecido**: Todas las imágenes tienen una altura fija de **500px** para consistencia visual
+- **Ajuste de imagen**: Por defecto usa `object-cover` (recorta si es necesario), pero puede configurarse con `objectFit="contain"` para ajustar sin recortar
+- **Construcción de URLs**: Usa `apiClient.getImageUrl()` para construir URLs completas desde URLs relativas
+- **Soporte**: Compatible con URLs relativas (`/images/posts/uuid.jpg`), URLs completas y base64
 
 ### Footer de Interacción
 - **Like**: Botón de corazón que cambia de color si el usuario ya dio like
@@ -107,4 +110,6 @@ import { PostCard } from '../posts/components/PostCard';
 - Los likes se verifican cruzando `userId` con la lista de likes
 - El menú se cierra automáticamente al hacer clic fuera
 - Las imágenes tienen manejo de errores (se ocultan si fallan al cargar)
+- **URLs de imágenes**: Se construyen usando `apiClient.getImageUrl()` para convertir URLs relativas a completas
+- **Compatibilidad**: Soporta URLs relativas del backend, URLs completas y base64 (para datos existentes)
 

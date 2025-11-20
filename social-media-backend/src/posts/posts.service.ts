@@ -94,10 +94,7 @@ export class PostsService {
 
     // Auto-detectar el tipo basado en los campos proporcionados
     if (!createPostDto.type) {
-      if (
-        createPostDto.imageUrl &&
-        (createPostDto.description || createPostDto.content)
-      ) {
+      if (createPostDto.imageUrl && createPostDto.content) {
         postType = PostType.TEXT_WITH_IMAGE;
       } else if (createPostDto.imageUrl) {
         postType = PostType.IMAGE;
@@ -165,7 +162,7 @@ export class PostsService {
             ? updatePostDto.content
             : post.content;
 
-        if (finalImageUrl && (finalDescription || finalContent)) {
+        if (finalImageUrl && finalContent) {
           postType = PostType.TEXT_WITH_IMAGE;
         } else if (finalImageUrl) {
           postType = PostType.IMAGE;

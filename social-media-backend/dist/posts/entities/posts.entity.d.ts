@@ -8,7 +8,7 @@ export declare enum PostType {
 }
 export declare class Post {
     id: string;
-    title: string;
+    title: string | null;
     description: string | null;
     content: string | null;
     imageUrl: string | null;

@@ -54,7 +54,7 @@ export const ProfilePage = () => {
         <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-4 sm:space-y-0 sm:space-x-6">
           <div className="relative">
             <Avatar
-              src={(user as any)?.imageUrl || undefined}
+              src={apiClient.getImageUrl((user as any)?.imageUrl) || undefined}
               name={userName}
               size="lg"
               className="mx-auto sm:mx-0 transition-all duration-200 hover:scale-105 cursor-pointer w-32 h-32 text-2xl"

@@ -2,6 +2,7 @@ import { useState, useRef, ChangeEvent } from 'react';
 import { Camera, X } from 'lucide-react';
 import { Avatar } from '../../../shared/components/Avatar';
 import { Button } from '../../../shared/components/Button';
+import { apiClient } from '../../../api/apiClient';
 
 interface ProfilePhotoUploaderProps {
   currentAvatar?: string;
@@ -69,7 +70,7 @@ export const ProfilePhotoUploader = ({
     fileInputRef.current?.click();
   };
 
-  const displayImage = preview || currentAvatar;
+  const displayImage = preview || apiClient.getImageUrl(currentAvatar);
 
   return (
     <div className={`flex flex-col items-center space-y-4 ${className}`}>

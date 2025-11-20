@@ -18,6 +18,9 @@ const auth_service_1 = require("./auth.service");
 const login_dto_1 = require("./dto/login.dto");
 const register_dto_1 = require("./dto/register.dto");
 const validate_field_dto_1 = require("./dto/validate-field.dto");
+const forgot_password_dto_1 = require("./dto/forgot-password.dto");
+const verify_code_dto_1 = require("./dto/verify-code.dto");
+const reset_password_dto_1 = require("./dto/reset-password.dto");
 const field_validation_pipe_1 = require("./pipes/field-validation.pipe");
 const jwt_auth_guard_1 = require("./guards/jwt-auth.guard");
 let AuthController = class AuthController {
@@ -74,6 +77,15 @@ let AuthController = class AuthController {
         const result = await this.authService.validateFieldUniqueness(validateFieldDto.field, validateFieldDto.value);
         return result;
     }
+    async forgotPassword(forgotPasswordDto) {
+        return await this.authService.forgotPassword(forgotPasswordDto);
+    }
+    async verifyCode(verifyCodeDto) {
+        return await this.authService.verifyCode(verifyCodeDto);
+    }
+    async resetPassword(resetPasswordDto) {
+        return await this.authService.resetPassword(resetPasswordDto);
+    }
 };
 exports.AuthController = AuthController;
 __decorate([
@@ -115,6 +127,27 @@ __decorate([
     __metadata("design:paramtypes", [validate_field_dto_1.ValidateFieldDto]),
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "validateField", null);
+__decorate([
+    (0, common_1.Post)('forgot-password'),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [forgot_password_dto_1.ForgotPasswordDto]),
+    __metadata("design:returntype", Promise)
+], AuthController.prototype, "forgotPassword", null);
+__decorate([
+    (0, common_1.Post)('verify-code'),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [verify_code_dto_1.VerifyCodeDto]),
+    __metadata("design:returntype", Promise)
+], AuthController.prototype, "verifyCode", null);
+__decorate([
+    (0, common_1.Post)('reset-password'),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [reset_password_dto_1.ResetPasswordDto]),
+    __metadata("design:returntype", Promise)
+], AuthController.prototype, "resetPassword", null);
 exports.AuthController = AuthController = __decorate([
     (0, common_1.Controller)('auth'),
     __metadata("design:paramtypes", [auth_service_1.AuthService])

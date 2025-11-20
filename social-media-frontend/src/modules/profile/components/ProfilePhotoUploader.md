@@ -8,8 +8,12 @@ Componente reutilizable para la carga de foto de perfil. Muestra el avatar actua
 ### `currentAvatar?: string`
 - **Tipo**: `string | undefined`
 - **Requerido**: No
-- **Descripción**: URL de la imagen de perfil actual del usuario
-- **Ejemplo**: `currentAvatar="/images/user-avatar.jpg"` o `currentAvatar="data:image/png;base64,..."`
+- **Descripción**: URL de la imagen de perfil actual del usuario (puede ser relativa, completa o base64)
+- **Ejemplo**: 
+  - URL relativa: `currentAvatar="/images/users/uuid.jpg"`
+  - URL completa: `currentAvatar="http://localhost:3006/images/users/uuid.jpg"`
+  - Base64: `currentAvatar="data:image/png;base64,..."`
+- **Nota**: El componente usa `apiClient.getImageUrl()` para construir URLs completas desde URLs relativas
 
 ### `currentName: string`
 - **Tipo**: `string`
@@ -109,19 +113,15 @@ El componente solo maneja la selección y preview del archivo. La subida real de
 ```tsx
 const handleFileSelect = async (file: File | null) => {
   if (file) {
-    // Opción 1: Convertir a base64 (temporal, no recomendado para producción)
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      const base64String = reader.result as string;
-      // Guardar base64String en imageUrl
-    };
-    reader.readAsDataURL(file);
-    
-    // Opción 2: Subir a servidor (recomendado)
-    // const formData = new FormData();
-    // formData.append('image', file);
-    // const response = await apiClient.post('/users/upload-image', formData);
+    // Subir imagen al servidor
+    const uploadResponse = await apiClient.uploadFile<{ imageUrl: string }>(
+      '/upload/user-avatar',
+      file,
+      'image',
+    );
     // Actualizar imageUrl con la URL retornada
+    const imageUrl = uploadResponse.imageUrl; // "/images/users/uuid.jpg"
+    // Guardar imageUrl en el perfil del usuario
   } else {
     // Usuario eliminó la foto
     // Establecer imageUrl a null
@@ -129,12 +129,18 @@ const handleFileSelect = async (file: File | null) => {
 };
 ```
 
+### Construcción de URLs
+El componente usa `apiClient.getImageUrl()` para construir URLs completas:
+- Si es URL relativa (`/images/...`), agrega el `baseURL`
+- Si ya es URL completa o base64, la retorna tal cual
+
 ## Notas Importantes
 
 ### Almacenamiento de Imágenes
-- **Actual**: Las imágenes se convierten a base64 y se guardan directamente en el campo `imageUrl`
-- **Limitación**: Base64 aumenta el tamaño de la imagen en ~33%, y puede hacer que las respuestas de la API sean muy grandes
-- **Recomendación**: En producción, implementar un servicio de almacenamiento (S3, Cloudinary, Firebase Storage, etc.)
+- **Actual**: Las imágenes se suben al servidor y se guarda solo la URL en el campo `imageUrl`
+- **Ubicación**: Archivos guardados en `images/users/` en el backend
+- **URL**: Se guarda URL relativa (`/images/users/uuid.jpg`) en la base de datos
+- **Ventaja**: Base de datos ligera, mejor rendimiento, fácil escalabilidad
 
 ### Eliminación de Foto
 - Cuando `onFileSelect(null)` se llama, el componente padre debe interpretar esto como una solicitud de eliminar la foto

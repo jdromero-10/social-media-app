@@ -22,9 +22,9 @@ class CreatePostDto {
 exports.CreatePostDto = CreatePostDto;
 __decorate([
     (0, class_validator_1.IsString)(),
-    (0, class_validator_1.IsNotEmpty)({ message: 'El título es requerido' }),
+    (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.MaxLength)(255, { message: 'El título no puede exceder 255 caracteres' }),
-    __metadata("design:type", String)
+    __metadata("design:type", Object)
 ], CreatePostDto.prototype, "title", void 0);
 __decorate([
     (0, class_validator_1.IsString)(),

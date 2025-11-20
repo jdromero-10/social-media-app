@@ -2,6 +2,7 @@ import { Outlet } from 'react-router-dom';
 import { SideBar } from './SideBar';
 import { NavBar } from './NavBar';
 import { CreatePostModalProvider, useCreatePostModal } from '../context/CreatePostModalContext';
+import { SidebarProvider, useSidebar } from '../context/SidebarContext';
 import { Modal } from './Modal';
 import { CreatePostForm } from '../../modules/posts/components/CreatePostForm';
 import { usePostStore } from '../store/postStore';
@@ -14,6 +15,7 @@ import type { CreatePostDto } from '../../modules/posts/posts.types';
 const MainLayoutContent = () => {
   const { isOpen, closeModal } = useCreatePostModal();
   const { createPost, isCreating } = usePostStore();
+  const { isVisible } = useSidebar();
 
   const handleCreatePost = async (data: CreatePostDto) => {
     const newPost = await createPost(data);
@@ -32,7 +34,7 @@ const MainLayoutContent = () => {
           <SideBar />
 
           {/* Main Content Area */}
-          <div className="flex-1 flex flex-col lg:ml-64">
+          <div className={`flex-1 flex flex-col transition-all duration-300 ${isVisible ? 'lg:ml-64' : 'lg:ml-16'}`}>
             {/* Navbar */}
             <NavBar />
 
@@ -74,7 +76,9 @@ const MainLayoutContent = () => {
 export const MainLayout = () => {
   return (
     <CreatePostModalProvider>
-      <MainLayoutContent />
+      <SidebarProvider>
+        <MainLayoutContent />
+      </SidebarProvider>
     </CreatePostModalProvider>
   );
 };

@@ -3,6 +3,9 @@ import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 import { ValidateFieldDto } from './dto/validate-field.dto';
+import { ForgotPasswordDto } from './dto/forgot-password.dto';
+import { VerifyCodeDto } from './dto/verify-code.dto';
+import { ResetPasswordDto } from './dto/reset-password.dto';
 import { User } from '../users/entities/user.entity';
 export declare class AuthController {
     private readonly authService;
@@ -25,5 +28,15 @@ export declare class AuthController {
     validateField(validateFieldDto: ValidateFieldDto): Promise<{
         isUnique: boolean;
         message?: string;
+    }>;
+    forgotPassword(forgotPasswordDto: ForgotPasswordDto): Promise<{
+        message: string;
+    }>;
+    verifyCode(verifyCodeDto: VerifyCodeDto): Promise<{
+        valid: boolean;
+        message: string;
+    }>;
+    resetPassword(resetPasswordDto: ResetPasswordDto): Promise<{
+        message: string;
     }>;
 }

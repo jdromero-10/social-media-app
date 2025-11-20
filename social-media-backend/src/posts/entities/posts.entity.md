@@ -12,11 +12,12 @@ Entidad TypeORM que representa una publicación (post) en la red social. Un post
 - **Descripción**: Identificador único del post
 - **Decorador**: `@PrimaryGeneratedColumn('uuid')`
 
-#### `title: string`
-- **Tipo**: String (máximo 255 caracteres)
-- **Descripción**: Título del post (requerido)
-- **Decorador**: `@Column({ type: 'varchar', length: 255 })`
-- **Requerido**: Sí
+#### `title: string | null`
+- **Tipo**: String (máximo 255 caracteres) o null
+- **Descripción**: Título del post (opcional, no se usa en la nueva estructura)
+- **Decorador**: `@Column({ type: 'varchar', length: 255, nullable: true })`
+- **Requerido**: No (puede ser null)
+- **Nota**: Este campo se mantiene para compatibilidad pero no se utiliza en el formulario actual
 
 #### `description: string | null`
 - **Tipo**: String (texto largo) o null
@@ -42,9 +43,9 @@ Entidad TypeORM que representa una publicación (post) en la red social. Un post
 - **Tipo**: String literal union
 - **Descripción**: Tipo de post que indica qué tipo de contenido tiene
 - **Valores posibles**:
-  - `'text'`: Solo texto (title + description/content)
-  - `'image'`: Solo imagen (imageUrl + title)
-  - `'text_with_image'`: Imagen con texto (imageUrl + title + description/content)
+  - `'text'`: Solo texto (content)
+  - `'image'`: Solo imagen (imageUrl)
+  - `'text_with_image'`: Imagen con texto (imageUrl + content)
 - **Default**: `'text'`
 - **Decorador**: `@Column({ type: 'varchar', default: 'text', comment: '...' })`
 
@@ -117,9 +118,9 @@ Post (1) ────────< (Muchos) Comment
 ```typescript
 const textPost: Post = {
   id: 'uuid-here',
-  title: 'Mi primera publicación',
-  description: 'Esta es una descripción',
-  content: 'Contenido completo del post...',
+  title: null,
+  description: null,
+  content: '¿Qué estás pensando?',
   imageUrl: null,
   type: 'text',
   authorId: 'user-uuid',
@@ -133,10 +134,10 @@ const textPost: Post = {
 ```typescript
 const imagePost: Post = {
   id: 'uuid-here',
-  title: 'Mi foto del día',
+  title: null,
   description: null,
   content: null,
-  imageUrl: '/uploads/posts/image-123.jpg',
+  imageUrl: '/images/posts/uuid.jpg',
   type: 'image',
   authorId: 'user-uuid',
   author: user,
@@ -149,10 +150,10 @@ const imagePost: Post = {
 ```typescript
 const mixedPost: Post = {
   id: 'uuid-here',
-  title: 'Mi experiencia hoy',
-  description: 'Compartiendo mi experiencia',
+  title: null,
+  description: null,
   content: 'Hoy fue un día increíble...',
-  imageUrl: '/uploads/posts/image-456.jpg',
+  imageUrl: '/images/posts/uuid.jpg',
   type: 'text_with_image',
   authorId: 'user-uuid',
   author: user,
@@ -166,19 +167,16 @@ const mixedPost: Post = {
 ### Al Crear un Post
 
 1. **Post de tipo 'text'**:
-   - `title` es requerido
-   - `description` o `content` debe tener al menos uno
+   - `content` es requerido (o al menos contenido o imagen)
    - `imageUrl` debe ser null
 
 2. **Post de tipo 'image'**:
-   - `title` es requerido
    - `imageUrl` es requerido
-   - `description` o `content` pueden ser null
+   - `content` puede ser null
 
 3. **Post de tipo 'text_with_image'**:
-   - `title` es requerido
    - `imageUrl` es requerido
-   - `description` o `content` debe tener al menos uno
+   - `content` es requerido
 
 ## Consultas TypeORM
 
@@ -213,7 +211,7 @@ Cuando uses migraciones de TypeORM, esta entidad generará una tabla con la sigu
 ```sql
 CREATE TABLE posts (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  title VARCHAR(255) NOT NULL,
+  title VARCHAR(255),  -- Ahora nullable
   description TEXT,
   content TEXT,
   imageUrl VARCHAR,

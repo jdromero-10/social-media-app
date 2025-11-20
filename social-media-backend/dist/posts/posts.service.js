@@ -58,8 +58,7 @@ let PostsService = class PostsService {
     async create(createPostDto, user) {
         let postType = createPostDto.type || posts_entity_1.PostType.TEXT;
         if (!createPostDto.type) {
-            if (createPostDto.imageUrl &&
-                (createPostDto.description || createPostDto.content)) {
+            if (createPostDto.imageUrl && createPostDto.content) {
                 postType = posts_entity_1.PostType.TEXT_WITH_IMAGE;
             }
             else if (createPostDto.imageUrl) {
@@ -100,7 +99,7 @@ let PostsService = class PostsService {
                 const finalContent = updatePostDto.content !== undefined
                     ? updatePostDto.content
                     : post.content;
-                if (finalImageUrl && (finalDescription || finalContent)) {
+                if (finalImageUrl && finalContent) {
                     postType = posts_entity_1.PostType.TEXT_WITH_IMAGE;
                 }
                 else if (finalImageUrl) {

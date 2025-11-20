@@ -36,6 +36,7 @@ Página principal (Home/Feed) de la red social. Muestra el feed de publicaciones
 2. **Modal de Editar Post**: 
    - **Ubicación**: Renderizado en HomePage (local)
    - **Formulario**: `CreatePostForm` prellenado para editar posts
+   - **Datos iniciales**: Solo incluye `content` e `imageUrl` (no `title` ni `description`)
    - **Lógica**: Se maneja en HomePage
 
 3. **Modal de Confirmación para Eliminar**:
@@ -104,8 +105,8 @@ import { HomePage } from '../modules/home/HomePage';
 ### Editar Post
 1. Usuario hace clic en menú de opciones del post
 2. Selecciona "Editar"
-3. Se abre modal con formulario prellenado
-4. Usuario modifica los campos
+3. Se abre modal con formulario prellenado (solo `content` e `imageUrl`)
+4. Usuario modifica el contenido o la imagen
 5. Al enviar, se llama a `updatePost` del store
 6. Se muestra toast de éxito/error
 

@@ -173,8 +173,6 @@ export const HomePage = () => {
             }}
             isLoading={isUpdating}
             initialData={{
-              title: editingPost.title,
-              description: editingPost.description || undefined,
               content: editingPost.content || undefined,
               imageUrl: editingPost.imageUrl || undefined,
             }}

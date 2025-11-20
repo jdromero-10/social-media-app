@@ -3,6 +3,7 @@ import { Heart, MessageCircle, MoreVertical, Edit, Trash2 } from 'lucide-react';
 import { Avatar } from '../../../shared/components/Avatar';
 import { Card } from '../../../shared/components/Card';
 import { ImageCarousel } from './ImageCarousel';
+import { apiClient } from '../../../api/apiClient';
 import type { Post } from '../posts.types';
 import type { User } from '../../auth/auth.types';
 
@@ -53,8 +54,8 @@ export const PostCard = ({
   const likesCount = post.likes?.length || 0;
   const commentsCount = post.comments?.length || 0;
 
-  // Preparar imágenes para el carrusel
-  const images = post.imageUrl ? [post.imageUrl] : [];
+  // Preparar imágenes para el carrusel (construir URLs completas)
+  const images = post.imageUrl ? [apiClient.getImageUrl(post.imageUrl) || post.imageUrl] : [];
 
   const handleLike = () => {
     if (onLike) {
@@ -150,22 +151,16 @@ export const PostCard = ({
       </div>
 
       {/* Contenido */}
-      <div className="mb-4">
-        <h3 className="text-lg font-semibold text-gray-900 mb-2">{post.title}</h3>
-        
-        {post.description && (
-          <p className="text-gray-700 mb-2 whitespace-pre-wrap">{post.description}</p>
-        )}
-        
-        {post.content && (
-          <p className="text-gray-700 whitespace-pre-wrap">{post.content}</p>
-        )}
-      </div>
+      {post.content && (
+        <div className="mb-4">
+          <p className="text-gray-900 whitespace-pre-wrap text-base leading-relaxed">{post.content}</p>
+        </div>
+      )}
 
       {/* Imágenes */}
       {images.length > 0 && (
         <div className="mb-4">
-          <ImageCarousel images={images} alt={post.title} />
+          <ImageCarousel images={images} alt={post.content || 'Imagen del post'} />
         </div>
       )}
 

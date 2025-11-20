@@ -109,16 +109,15 @@ Crea un nuevo post.
 **Lógica de Auto-detección del Tipo:**
 1. Si se proporciona `type`, se usa ese valor
 2. Si no se proporciona `type`:
-   - Si hay `imageUrl` Y (`description` o `content`): `'text_with_image'`
-   - Si hay `imageUrl` pero NO (`description` o `content`): `'image'`
+   - Si hay `imageUrl` Y `content`: `'text_with_image'`
+   - Si hay `imageUrl` pero NO `content`: `'image'`
    - Si NO hay `imageUrl`: `'text'`
 
 **Ejemplo:**
 ```typescript
 const createPostDto: CreatePostDto = {
-  title: 'Mi primera publicación',
-  description: 'Descripción del post',
-  content: 'Contenido completo...',
+  content: '¿Qué estás pensando?',
+  imageUrl: '/images/posts/uuid.jpg', // Opcional
 };
 
 const post = await postsService.create(createPostDto, authenticatedUser);
@@ -149,14 +148,17 @@ Actualiza un post existente.
 
 **Lógica de Recalculo del Tipo:**
 - Si se proporciona `type` explícitamente, se usa ese valor
-- Si no se proporciona `type` pero se actualiza `imageUrl`:
+- Si no se proporciona `type` pero se actualiza `imageUrl` o `content`:
   - Se calcula el tipo basado en los campos finales (actualizados + existentes)
+  - Si hay `imageUrl` Y `content`: `'text_with_image'`
+  - Si solo hay `imageUrl`: `'image'`
+  - Si solo hay `content`: `'text'`
 
 **Ejemplo:**
 ```typescript
 const updatePostDto: UpdatePostDto = {
-  title: 'Título actualizado',
-  description: 'Nueva descripción',
+  content: 'Contenido actualizado',
+  imageUrl: '/images/posts/new-uuid.jpg', // Opcional
 };
 
 const updatedPost = await postsService.update('post-uuid', updatePostDto, authenticatedUser);

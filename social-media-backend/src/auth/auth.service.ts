@@ -1,19 +1,31 @@
 import {
+  BadRequestException,
   ConflictException,
   Injectable,
+  NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { UsersService } from '../users/users.service';
+import { EmailService } from '../email/email.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
+import { ForgotPasswordDto } from './dto/forgot-password.dto';
+import { VerifyCodeDto } from './dto/verify-code.dto';
+import { ResetPasswordDto } from './dto/reset-password.dto';
+import { PasswordResetCode } from './entities/password-reset-code.entity';
 
 @Injectable()
 export class AuthService {
   constructor(
     private readonly usersService: UsersService,
     private readonly jwtService: JwtService,
+    private readonly emailService: EmailService,
+    @InjectRepository(PasswordResetCode)
+    private readonly passwordResetCodeRepository: Repository<PasswordResetCode>,
   ) {}
 
   // Registro de usuario
@@ -121,6 +133,153 @@ export class AuthService {
       isUnique: false,
       message: `El ${fieldName} ya está en uso.`,
     };
+  }
+
+  /**
+   * Solicita un código de recuperación de contraseña
+   * @param forgotPasswordDto - Email del usuario
+   * @returns Mensaje genérico de éxito (por seguridad)
+   */
+  async forgotPassword(forgotPasswordDto: ForgotPasswordDto): Promise<{
+    message: string;
+  }> {
+    const user = await this.usersService.getByEmail(forgotPasswordDto.email);
+
+    // Por seguridad, siempre retornamos el mismo mensaje
+    // No revelamos si el email existe o no
+    if (!user) {
+      return {
+        message:
+          'Si el email existe, recibirás un código de recuperación en breve.',
+      };
+    }
+
+    // Generar código de 6 dígitos
+    const code = this.generateResetCode();
+
+    // Calcular fecha de expiración (15 minutos)
+    const expiresAt = new Date();
+    expiresAt.setMinutes(expiresAt.getMinutes() + 15);
+
+    // Guardar código en la base de datos
+    const resetCode = this.passwordResetCodeRepository.create({
+      userId: user.id,
+      code,
+      expiresAt,
+      used: false,
+    });
+    await this.passwordResetCodeRepository.save(resetCode);
+
+    // Enviar email con el código
+    await this.emailService.sendPasswordResetCode(user.email, code);
+
+    return {
+      message:
+        'Si el email existe, recibirás un código de recuperación en breve.',
+    };
+  }
+
+  /**
+   * Verifica un código de recuperación de contraseña
+   * @param verifyCodeDto - Email y código
+   * @returns Token temporal o indicador de éxito
+   */
+  async verifyCode(verifyCodeDto: VerifyCodeDto): Promise<{
+    valid: boolean;
+    message: string;
+  }> {
+    const user = await this.usersService.getByEmail(verifyCodeDto.email);
+
+    if (!user) {
+      throw new NotFoundException('Usuario no encontrado');
+    }
+
+    // Buscar el código más reciente no usado
+    const resetCode = await this.passwordResetCodeRepository.findOne({
+      where: {
+        userId: user.id,
+        code: verifyCodeDto.code,
+        used: false,
+      },
+      order: {
+        createdAt: 'DESC',
+      },
+    });
+
+    if (!resetCode) {
+      throw new BadRequestException('Código inválido');
+    }
+
+    // Verificar que no haya expirado
+    if (new Date() > resetCode.expiresAt) {
+      throw new BadRequestException('El código ha expirado');
+    }
+
+    return {
+      valid: true,
+      message: 'Código verificado correctamente',
+    };
+  }
+
+  /**
+   * Restablece la contraseña del usuario
+   * @param resetPasswordDto - Email, código, nueva contraseña y confirmación
+   * @returns Mensaje de éxito
+   */
+  async resetPassword(resetPasswordDto: ResetPasswordDto): Promise<{
+    message: string;
+  }> {
+    // Validar que las contraseñas coincidan
+    if (resetPasswordDto.newPassword !== resetPasswordDto.confirmPassword) {
+      throw new BadRequestException('Las contraseñas no coinciden');
+    }
+
+    const user = await this.usersService.getByEmail(resetPasswordDto.email);
+
+    if (!user) {
+      throw new NotFoundException('Usuario no encontrado');
+    }
+
+    // Re-validar el código
+    const resetCode = await this.passwordResetCodeRepository.findOne({
+      where: {
+        userId: user.id,
+        code: resetPasswordDto.code,
+        used: false,
+      },
+      order: {
+        createdAt: 'DESC',
+      },
+    });
+
+    if (!resetCode) {
+      throw new BadRequestException('Código inválido');
+    }
+
+    if (new Date() > resetCode.expiresAt) {
+      throw new BadRequestException('El código ha expirado');
+    }
+
+    // Hashear nueva contraseña
+    const hashedPassword = await bcrypt.hash(resetPasswordDto.newPassword, 10);
+
+    // Actualizar contraseña del usuario
+    await this.usersService.updatePassword(user.id, hashedPassword);
+
+    // Marcar código como usado
+    resetCode.used = true;
+    await this.passwordResetCodeRepository.save(resetCode);
+
+    return {
+      message: 'Contraseña restablecida exitosamente',
+    };
+  }
+
+  /**
+   * Genera un código aleatorio de 6 dígitos
+   */
+  private generateResetCode(): string {
+    return Math.floor(100000 + Math.random() * 900000).toString();
   }
 
   private async buildAuthResponse(userId: string, email: string) {

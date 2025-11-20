@@ -43,7 +43,7 @@ Interfaz principal que representa un post completo:
 ```typescript
 interface Post {
   id: string;
-  title: string;
+  title: string | null;  // Opcional, nullable
   description: string | null;
   content: string | null;
   imageUrl: string | null;
@@ -59,9 +59,9 @@ interface Post {
 
 **Campos:**
 - `id`: UUID único del post
-- `title`: Título del post (requerido, max 255 caracteres)
-- `description`: Descripción opcional del post
-- `content`: Contenido de texto del post
+- `title`: Título del post (opcional, nullable, no se usa en la nueva estructura)
+- `description`: Descripción opcional del post (no se usa en la nueva estructura)
+- `content`: Contenido de texto del post (campo principal)
 - `imageUrl`: URL de la imagen del post (si tiene)
 - `type`: Tipo de post (text, image, text_with_image)
 - `authorId`: ID del usuario que creó el post
@@ -75,9 +75,9 @@ interface Post {
 DTO para crear un nuevo post:
 ```typescript
 interface CreatePostDto {
-  title: string; // Requerido
-  description?: string | null;
-  content?: string | null;
+  title?: string | null;  // Opcional, no se usa en el formulario
+  description?: string | null;  // Opcional, no se usa en el formulario
+  content?: string | null;  // Campo principal del post
   imageUrl?: string | null;
   type?: PostType; // Opcional, se auto-detecta
 }
@@ -106,16 +106,15 @@ import type { Post, CreatePostDto, UpdatePostDto, PostType } from './posts.types
 ```typescript
 // Crear un nuevo post
 const newPost: CreatePostDto = {
-  title: 'Mi primera publicación',
-  description: 'Esta es una descripción',
-  content: 'Contenido completo del post...',
-  type: PostType.TEXT,
+  content: '¿Qué estás pensando?',
+  imageUrl: '/images/posts/uuid.jpg', // Opcional
+  type: PostType.TEXT, // Opcional, se auto-detecta
 };
 
 // Actualizar un post
 const updateData: UpdatePostDto = {
-  title: 'Título actualizado',
-  description: 'Nueva descripción',
+  content: 'Contenido actualizado',
+  imageUrl: '/images/posts/new-uuid.jpg', // Opcional
 };
 ```
 
@@ -137,10 +136,10 @@ const updateData: UpdatePostDto = {
 ## Validaciones
 
 ### Al crear un post:
-- `title` es requerido y no puede exceder 255 caracteres
-- Si hay `imageUrl` y (`description` o `content`), el tipo será `TEXT_WITH_IMAGE`
+- Se requiere al menos `content` o `imageUrl` para poder publicar
+- Si hay `imageUrl` y `content`, el tipo será `TEXT_WITH_IMAGE`
 - Si solo hay `imageUrl`, el tipo será `IMAGE`
-- Si no hay `imageUrl`, el tipo será `TEXT`
+- Si solo hay `content`, el tipo será `TEXT`
 
 ## Notas Técnicas
 

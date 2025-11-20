@@ -40,8 +40,8 @@ __decorate([
     __metadata("design:type", String)
 ], Post.prototype, "id", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ type: 'varchar', length: 255 }),
-    __metadata("design:type", String)
+    (0, typeorm_1.Column)({ type: 'varchar', length: 255, nullable: true }),
+    __metadata("design:type", Object)
 ], Post.prototype, "title", void 0);
 __decorate([
     (0, typeorm_1.Column)({ type: 'text', nullable: true }),
