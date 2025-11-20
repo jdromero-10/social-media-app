@@ -16,10 +16,13 @@ pnpm-debug.log*
 lerna-debug.log*
 
 # Directorios de compilación y salida (Build/Dist)
-# El slash inicial asegura que se ignoren en cualquier subdirectorio (FE/BE)
-/dist
-/dist-ssr
-/build
+# Ignora dist/ en cualquier subdirectorio (FE/BE)
+dist/
+dist-ssr/
+build/
+**/dist/
+**/dist-ssr/
+**/build/
 
 # Directorios temporales y de caché
 .temp
