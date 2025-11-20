@@ -19,5 +19,6 @@ export { MainLayout } from './MainLayout';
 export { SideBar } from './SideBar';
 export { NavBar } from './NavBar';
 export { Avatar } from './Avatar';
+export { ImageCropModal } from './ImageCropModal';
 export type { ToastProps } from './Toast';
 

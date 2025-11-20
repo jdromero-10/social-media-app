@@ -118,12 +118,15 @@ class ApiClient {
     }
 
     // Si es un error de red (fetch falló)
-    if (error instanceof TypeError && error.message.includes('fetch')) {
-      return {
-        message: 'No se pudo conectar con el servidor. Verifica tu conexión a internet.',
-        statusCode: 0,
-        error: 'NetworkError',
-      };
+    if (error instanceof TypeError) {
+      // ERR_CONNECTION_REFUSED o similar
+      if (error.message.includes('fetch') || error.message.includes('Failed to fetch') || error.message.includes('ERR_CONNECTION_REFUSED')) {
+        return {
+          message: 'No se pudo conectar con el servidor. Verifica que el servidor esté funcionando y que la URL sea correcta.',
+          statusCode: 0,
+          error: 'NetworkError',
+        };
+      }
     }
 
     // Si es un error desconocido
@@ -220,6 +223,53 @@ class ApiClient {
     } catch (error) {
       throw this.handleNetworkError(error);
     }
+  }
+
+  /**
+   * Realiza una petición POST para subir un archivo
+   * @param endpoint - Endpoint de la API
+   * @param file - Archivo a subir
+   * @param fieldName - Nombre del campo en FormData (default: 'image')
+   * @returns Respuesta de la API
+   */
+  async uploadFile<T>(
+    endpoint: string,
+    file: File,
+    fieldName: string = 'image',
+  ): Promise<T> {
+    try {
+      const formData = new FormData();
+      formData.append(fieldName, file);
+
+      const response = await fetch(`${this.baseURL}${endpoint}`, {
+        method: 'POST',
+        // No establecer Content-Type, el navegador lo hará automáticamente con el boundary
+        body: formData,
+        credentials: 'include', // Incluir cookies en la petición
+      });
+
+      return await this.handleResponse<T>(response);
+    } catch (error) {
+      throw this.handleNetworkError(error);
+    }
+  }
+
+  /**
+   * Construye la URL completa de una imagen a partir de una URL relativa
+   * @param imageUrl - URL relativa (ej: "/images/users/uuid.jpg") o URL completa
+   * @returns URL completa de la imagen
+   */
+  getImageUrl(imageUrl: string | null | undefined): string | null {
+    if (!imageUrl) return null;
+    // Si ya es una URL completa (http/https) o base64, retornarla tal cual
+    if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://') || imageUrl.startsWith('data:')) {
+      return imageUrl;
+    }
+    // Si es una URL relativa del backend, construir la URL completa
+    if (imageUrl.startsWith('/images/')) {
+      return `${this.baseURL}${imageUrl}`;
+    }
+    return imageUrl;
   }
 }
 

@@ -95,6 +95,7 @@ export const NavBar = () => {
           aria-label="Menú de usuario"
         >
           <Avatar 
+            src={apiClient.getImageUrl((user as any)?.imageUrl) || undefined} 
             name={userName} 
             size="md" 
             className="transition-all duration-200 group-hover:scale-110 group-hover:ring-2 group-hover:ring-[#00dde5] group-hover:ring-offset-2 cursor-pointer"

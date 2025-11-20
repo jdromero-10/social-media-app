@@ -13,6 +13,9 @@ import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 import { ValidateFieldDto } from './dto/validate-field.dto';
+import { ForgotPasswordDto } from './dto/forgot-password.dto';
+import { VerifyCodeDto } from './dto/verify-code.dto';
+import { ResetPasswordDto } from './dto/reset-password.dto';
 import { FieldValidationPipe } from './pipes/field-validation.pipe';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { User } from '../users/entities/user.entity';
@@ -95,5 +98,38 @@ export class AuthController {
     // Siempre retornamos 200 OK, ya que la petición es válida
     // El resultado indica si el campo es único o no
     return result;
+  }
+
+  /**
+   * POST /auth/forgot-password
+   * Solicita un código de recuperación de contraseña
+   * @param forgotPasswordDto - Email del usuario
+   * @returns Mensaje genérico de éxito (por seguridad)
+   */
+  @Post('forgot-password')
+  async forgotPassword(@Body() forgotPasswordDto: ForgotPasswordDto) {
+    return await this.authService.forgotPassword(forgotPasswordDto);
+  }
+
+  /**
+   * POST /auth/verify-code
+   * Verifica un código de recuperación de contraseña
+   * @param verifyCodeDto - Email y código de 6 dígitos
+   * @returns Indicador de éxito si el código es válido
+   */
+  @Post('verify-code')
+  async verifyCode(@Body() verifyCodeDto: VerifyCodeDto) {
+    return await this.authService.verifyCode(verifyCodeDto);
+  }
+
+  /**
+   * POST /auth/reset-password
+   * Restablece la contraseña del usuario
+   * @param resetPasswordDto - Email, código, nueva contraseña y confirmación
+   * @returns Mensaje de éxito
+   */
+  @Post('reset-password')
+  async resetPassword(@Body() resetPasswordDto: ResetPasswordDto) {
+    return await this.authService.resetPassword(resetPasswordDto);
   }
 }

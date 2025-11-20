@@ -24,11 +24,12 @@ La página ahora usa `AuthLayout` que proporciona:
   - Formulario ocupa todo el ancho
 
 ### Contenido
-1. **ToastContainer**: Contenedor para notificaciones
+1. **ToastContainer**: Contenedor para notificaciones (lee automáticamente del store de Zustand, no requiere props)
 2. **AuthLayout**: Layout compartido que incluye:
    - Header con título, descripción y enlace
    - `LandingPageInfo` (solo desktop)
    - Formulario envuelto en Card
+3. **LoginForm**: Formulario de login que maneja errores internamente usando el sistema de Toast global
 
 ## Componentes Utilizados
 

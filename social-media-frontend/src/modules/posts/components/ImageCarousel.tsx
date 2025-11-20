@@ -5,6 +5,7 @@ interface ImageCarouselProps {
   images: string[];
   alt?: string;
   className?: string;
+  objectFit?: 'cover' | 'contain'; // Opción para recortar o ajustar
 }
 
 /**
@@ -14,6 +15,7 @@ export const ImageCarousel = ({
   images,
   alt = 'Post image',
   className = '',
+  objectFit = 'cover', // Por defecto recorta si es necesario
 }: ImageCarouselProps) => {
   const [currentIndex, setCurrentIndex] = useState(0);
 
@@ -24,16 +26,26 @@ export const ImageCarousel = ({
   // Si solo hay una imagen, no mostrar controles
   if (images.length === 1) {
     return (
-      <div className={`relative w-full ${className}`}>
-        <img
-          src={images[0]}
-          alt={alt}
-          className="w-full h-auto object-cover rounded-lg"
-          onError={(e) => {
-            const target = e.target as HTMLImageElement;
-            target.style.display = 'none';
+      <div className={`relative w-full flex justify-center ${className}`}>
+        <div 
+          className="relative rounded-lg bg-gray-100 overflow-hidden flex items-center justify-center"
+          style={{ 
+            width: '85%', 
+            maxWidth: '600px',
+            height: '450px',
+            aspectRatio: '4/5'
           }}
-        />
+        >
+          <img
+            src={images[0]}
+            alt={alt}
+            className={`w-full h-full ${objectFit === 'cover' ? 'object-cover' : 'object-contain'}`}
+            onError={(e) => {
+              const target = e.target as HTMLImageElement;
+              target.style.display = 'none';
+            }}
+          />
+        </div>
       </div>
     );
   }
@@ -51,13 +63,21 @@ export const ImageCarousel = ({
   };
 
   return (
-    <div className={`relative w-full ${className}`}>
+    <div className={`relative w-full flex justify-center ${className}`}>
       {/* Imagen actual */}
-      <div className="relative overflow-hidden rounded-lg bg-gray-100">
+      <div 
+        className="relative rounded-lg bg-gray-100 overflow-hidden flex items-center justify-center"
+        style={{ 
+          width: '85%', 
+          maxWidth: '600px',
+          height: '500px',
+          aspectRatio: '4/5'
+        }}
+      >
         <img
           src={images[currentIndex]}
           alt={`${alt} ${currentIndex + 1}`}
-          className="w-full h-auto object-cover"
+          className={`w-full h-full ${objectFit === 'cover' ? 'object-cover' : 'object-contain'}`}
           onError={(e) => {
             const target = e.target as HTMLImageElement;
             target.style.display = 'none';

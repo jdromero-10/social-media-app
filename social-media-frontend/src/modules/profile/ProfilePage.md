@@ -124,14 +124,18 @@ El Avatar muestra la imagen de perfil del usuario si está disponible:
 
 ```tsx
 <Avatar
-  src={(user as any)?.imageUrl || undefined}
+  src={apiClient.getImageUrl((user as any)?.imageUrl) || undefined}
   name={userName}
   size="lg"
   className="mx-auto sm:mx-0 transition-all duration-200 hover:scale-105 cursor-pointer w-32 h-32 text-2xl"
 />
 ```
 
-- **Soporte para base64**: El componente Avatar puede mostrar imágenes en formato base64 (data URLs)
+- **Construcción de URLs**: Usa `apiClient.getImageUrl()` para construir URLs completas desde URLs relativas
+- **Soporte múltiple**: 
+  - URLs relativas del backend: `/images/users/uuid.jpg` → `http://localhost:3006/images/users/uuid.jpg`
+  - URLs completas: Se retornan tal cual
+  - Base64: Se retornan tal cual (compatibilidad con datos existentes)
 - **Fallback**: Si no hay `imageUrl`, muestra las iniciales del usuario con un color aleatorio
 - **Actualización automática**: Cuando se actualiza el perfil, la imagen se refresca automáticamente gracias a React Query
 

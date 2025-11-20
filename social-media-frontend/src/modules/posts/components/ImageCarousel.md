@@ -7,9 +7,10 @@ Componente reutilizable para mostrar múltiples imágenes en un carrusel. Incluy
 
 ```typescript
 interface ImageCarouselProps {
-  images: string[];      // Array de URLs de imágenes
-  alt?: string;          // Texto alternativo para las imágenes
-  className?: string;    // Clases CSS adicionales
+  images: string[];                    // Array de URLs de imágenes
+  alt?: string;                        // Texto alternativo para las imágenes
+  className?: string;                  // Clases CSS adicionales
+  objectFit?: 'cover' | 'contain';     // Modo de ajuste de imagen (default: 'cover')
 }
 ```
 
@@ -45,15 +46,51 @@ import { ImageCarousel } from '../posts/components/ImageCarousel';
   images={['/img1.jpg']}
   alt="Foto del post"
 />
+
+// Con ajuste sin recortar
+<ImageCarousel 
+  images={['/img1.jpg', '/img2.jpg']}
+  alt="Fotos del post"
+  objectFit="contain"
+/>
 ```
+
+## Tamaño de Imágenes
+
+- **Formato vertical (portrait)**: Las imágenes tienen un formato más vertical, con más altura que ancho
+- **Dimensiones optimizadas**: 
+  - **Una imagen**: 
+    - Ancho: **85%** del contenedor (reducido para formato vertical)
+    - Altura: **450px** (aumentada para formato vertical)
+    - Max-width: **600px** (para mantener proporciones en pantallas grandes)
+    - Aspect ratio: **4:5** (formato vertical)
+  - **Múltiples imágenes (carrusel)**: 
+    - Ancho: **85%** del contenedor (reducido para formato vertical)
+    - Altura: **500px** (aumentada para formato vertical)
+    - Max-width: **600px** (para mantener proporciones en pantallas grandes)
+    - Aspect ratio: **4:5** (formato vertical)
+- **Centrado**: Las imágenes están centradas horizontalmente en el contenedor
+- **Ajuste de imagen**: 
+  - `objectFit: 'cover'` (por defecto): Recorta la imagen si es necesario para llenar el espacio
+  - `objectFit: 'contain'`: Ajusta la imagen sin recortar, manteniendo toda la imagen visible
+- **Contenedor**: Fondo gris claro (`bg-gray-100`) que se muestra si la imagen es más pequeña que el contenedor
+- **Responsive**: Se adapta a diferentes tamaños de pantalla manteniendo el formato vertical
 
 ## Estilos
 
-- Imágenes con `object-cover` para mantener proporción
+- **Formato vertical**: Imágenes con formato portrait (más altura que ancho) para mejor visualización
+- **Dimensiones**:
+  - Ancho: 85% del contenedor (reducido para formato vertical)
+  - Altura: 450px (una imagen) o 500px (múltiples imágenes)
+  - Max-width: 600px para mantener proporciones en pantallas grandes
+  - Aspect ratio: 4:5 (formato vertical)
+- **Centrado**: Las imágenes están centradas horizontalmente usando flexbox
+- `object-cover` por defecto (recorta si es necesario) o `object-contain` (ajusta sin recortar)
 - Botones de navegación con overlay semitransparente
 - Indicadores con estados activo/inactivo
 - Contador con fondo semitransparente
 - Bordes redondeados en las imágenes
+- Contenedor con fondo gris claro para mejor contraste
 
 ## Accesibilidad
 

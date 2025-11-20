@@ -1,5 +1,5 @@
-import { useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useEffect, useRef } from 'react';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
@@ -38,8 +38,13 @@ export const LoginForm = ({ onError }: LoginFormProps = {}) => {
   const { loginAsync, isLoggingIn, loginError } = useAuth();
   const { showError: showErrorLocal } = useToast();
   
-  // Usar la función pasada como prop o la local
-  const showError = onError || showErrorLocal;
+  // Usar useRef para mantener una referencia estable a la función de error
+  const showErrorRef = useRef(onError || showErrorLocal);
+  
+  // Actualizar la referencia cuando cambie
+  useEffect(() => {
+    showErrorRef.current = onError || showErrorLocal;
+  }, [onError, showErrorLocal]);
 
   const {
     register,
@@ -58,18 +63,19 @@ export const LoginForm = ({ onError }: LoginFormProps = {}) => {
         errorMessage += '. Verifica que el servidor esté en ejecución y tu conexión a internet.';
       }
       
-      showError(errorMessage);
+      // Usar la referencia estable para evitar bucles infinitos
+      showErrorRef.current(errorMessage);
     }
-  }, [loginError, showError]);
+  }, [loginError]); // Solo depender de loginError, no de showError
 
   const onSubmit = async (data: LoginDto) => {
     try {
       await loginAsync(data);
       // Redirigir después de login exitoso
       // Las queries se invalidan automáticamente en onSuccess del hook useAuth
-      const from = (location.state as any)?.from?.pathname || '/home';
+      const from = (location.state as { from?: { pathname: string } })?.from?.pathname || '/home';
       navigate(from, { replace: true });
-    } catch (error) {
+    } catch {
       // El error ya se maneja en el useEffect de loginError
       // No necesitamos hacer nada aquí
     }
@@ -91,6 +97,15 @@ export const LoginForm = ({ onError }: LoginFormProps = {}) => {
         {...register('password')}
         error={errors.password?.message}
       />
+
+      <div className="text-right">
+        <Link
+          to="/forgot-password"
+          className="text-sm text-[#00b1c0] hover:text-[#038c9b] transition-colors font-medium"
+        >
+          ¿Olvidaste tu contraseña?
+        </Link>
+      </div>
 
       <Button type="submit" variant="primary" fullWidth isLoading={isLoggingIn}>
         {isLoggingIn ? 'Iniciando sesión...' : 'Iniciar sesión'}

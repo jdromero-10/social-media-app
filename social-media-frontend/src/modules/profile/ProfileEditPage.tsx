@@ -78,21 +78,25 @@ export const ProfileEditPage = () => {
     setIsSubmitting(true);
 
     try {
-      // Si hay una imagen seleccionada, convertirla a base64
       let imageUrl = (user as any)?.imageUrl || null;
       
+      // Si hay una imagen seleccionada, subirla primero
       if (selectedFile) {
-        // Convertir la imagen a base64 para guardarla temporalmente
-        // NOTA: En producción, esto debería subirse a un servicio de almacenamiento (S3, Cloudinary, etc.)
-        imageUrl = await new Promise<string>((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onloadend = () => {
-            const base64String = reader.result as string;
-            resolve(base64String);
-          };
-          reader.onerror = reject;
-          reader.readAsDataURL(selectedFile);
-        });
+        try {
+          const uploadResponse = await apiClient.uploadFile<{ imageUrl: string }>(
+            '/upload/user-avatar',
+            selectedFile,
+            'image',
+          );
+          imageUrl = uploadResponse.imageUrl;
+        } catch (uploadError) {
+          const apiError = uploadError as { message?: string };
+          showError(
+            apiError.message || 'Error al subir la imagen. Intente de nuevo.'
+          );
+          setIsSubmitting(false);
+          return;
+        }
       } else if (selectedFile === null && (user as any)?.imageUrl) {
         // Si se eliminó la foto (selectedFile es null explícitamente)
         imageUrl = null;

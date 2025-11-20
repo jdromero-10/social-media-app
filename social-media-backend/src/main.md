@@ -10,22 +10,43 @@ La función `bootstrap()` es asíncrona y se ejecuta al iniciar la aplicación. 
 
 1. **Creación de la aplicación NestJS**: Usa `NestFactory.create(AppModule)` para crear la instancia de la aplicación.
 
-2. **Cookie Parser**: Configura el middleware `cookie-parser` para poder leer y escribir cookies HTTP.
+2. **Archivos Estáticos**: Configura NestJS para servir archivos estáticos desde la carpeta `images/`.
+   - **Ruta**: `/images/` (prefijo)
+   - **Directorio**: `images/` en la raíz del proyecto (relativo a `dist/` en producción)
+   - **Uso**: Permite acceder a imágenes subidas (avatares de usuario e imágenes de posts)
+   - **Ejemplo**: `http://localhost:3006/images/users/uuid.jpg`
+   - **Implementación**: Usa `app.useStaticAssets()` de NestJS con `NestExpressApplication`
+   - **CORS para archivos estáticos**: Se agrega un middleware personalizado antes de `useStaticAssets` para asegurar que los archivos estáticos tengan headers CORS correctos
+   - **Importante**: Sin este middleware, las imágenes no se pueden cargar desde el frontend debido a restricciones CORS
+
+3. **Cookie Parser**: Configura el middleware `cookie-parser` para poder leer y escribir cookies HTTP.
    - **Importante**: Se usa `cookieParser.default()` para compatibilidad con la importación de módulos ES.
    - Permite que el backend pueda leer cookies enviadas por el cliente y establecer cookies en las respuestas.
 
-3. **CORS (Cross-Origin Resource Sharing)**: Configura CORS para permitir peticiones desde el frontend.
+4. **CORS (Cross-Origin Resource Sharing)**: Configura CORS para permitir peticiones desde el frontend.
+   - **Configuración general**: Se habilita CORS primero con `app.enableCors()` para todas las rutas
+   - **CORS para archivos estáticos**: Se agrega un middleware específico para rutas `/images/*` que agrega headers CORS:
+     - `Access-Control-Allow-Origin`: URL del frontend
+     - `Access-Control-Allow-Credentials`: `true`
+     - `Access-Control-Allow-Methods`: GET, OPTIONS
+     - `Access-Control-Allow-Headers`: Content-Type, Authorization
+     - `Access-Control-Expose-Headers`: Content-Length, Content-Type (permite que el frontend acceda a estos headers)
+   - **Manejo de preflight**: El middleware maneja requests OPTIONS (preflight) para archivos estáticos
+   - **Uso de `res.header()`**: Se usa `res.header()` para establecer los headers CORS (compatible con Express)
+   - **Importante**: Este middleware DEBE estar ANTES de `useStaticAssets` para que funcione correctamente
+   - **Solución a errores CORS**: Sin este middleware, las imágenes no se pueden cargar desde el frontend debido a restricciones CORS, causando errores como "No 'Access-Control-Allow-Origin' header is present"
    - **Origin**: Configurado desde `process.env.FRONTEND_URL` o por defecto `http://localhost:5173`
    - **Credentials**: Habilitado (`credentials: true`) para permitir el envío de cookies entre dominios
    - **Métodos permitidos**: GET, POST, PUT, PATCH, DELETE, OPTIONS
    - **Headers permitidos**: Content-Type, Authorization
+   - **Importante**: El middleware CORS para archivos estáticos debe estar ANTES de `useStaticAssets` para que funcione correctamente
 
-4. **Validation Pipe Global**: Configura validación automática de DTOs.
+5. **Validation Pipe Global**: Configura validación automática de DTOs.
    - **whitelist**: Elimina propiedades que no están definidas en el DTO
    - **transform**: Transforma automáticamente los objetos entrantes a instancias de DTO
    - **forbidUnknownValues**: Deshabilitado para mayor flexibilidad
 
-5. **Puerto**: La aplicación escucha en el puerto definido por `process.env.PORT` o por defecto `3000`.
+6. **Puerto**: La aplicación escucha en el puerto definido por `process.env.PORT` o por defecto `3006`.
 
 ## Implementación de Cookies HTTP-Only
 
@@ -63,13 +84,17 @@ bootstrap() se ejecuta
     ↓
 Crea instancia de NestJS
     ↓
-Configura cookie-parser
+Habilita CORS general
     ↓
-Configura CORS con credentials
+Agrega middleware CORS para /images/*
+    ↓
+Configura archivos estáticos (/images/)
+    ↓
+Configura cookie-parser
     ↓
 Configura Validation Pipe global
     ↓
-Escucha en puerto 3000 (o PORT)
+Escucha en puerto 3006 (o PORT)
     ↓
 Aplicación lista para recibir peticiones
 ```
@@ -78,6 +103,7 @@ Aplicación lista para recibir peticiones
 
 - `@nestjs/common`: Decoradores y utilidades de NestJS
 - `@nestjs/core`: Core de NestJS (NestFactory)
+- `@nestjs/platform-express`: Para `NestExpressApplication` y `useStaticAssets`
 - `cookie-parser`: Middleware para manejar cookies
 - `AppModule`: Módulo raíz de la aplicación
 

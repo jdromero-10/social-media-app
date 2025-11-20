@@ -43,7 +43,7 @@ export interface Comment {
  */
 export interface Post {
   id: string;
-  title: string;
+  title: string | null;
   description: string | null;
   content: string | null;
   imageUrl: string | null;
@@ -60,7 +60,7 @@ export interface Post {
  * DTO para crear un post
  */
 export interface CreatePostDto {
-  title: string;
+  title?: string | null;
   description?: string | null;
   content?: string | null;
   imageUrl?: string | null;

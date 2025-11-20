@@ -139,6 +139,30 @@ Elimina un usuario por su email (método temporal para desarrollo).
 
 ---
 
+### `updatePassword(userId: string, hashedPassword: string): Promise<User>`
+Actualiza la contraseña de un usuario (usado en recuperación de contraseña).
+
+**Parámetros**:
+- `userId`: UUID del usuario
+- `hashedPassword`: Contraseña hasheada (con bcrypt)
+
+**Retorna**: `Promise<User>` - Usuario actualizado
+
+**Errores**:
+- `NotFoundException`: Si el usuario no existe
+
+**Uso**: Utilizado por `AuthService` en el flujo de recuperación de contraseña
+
+**Ejemplo**:
+```typescript
+const hashedPassword = await bcrypt.hash('nuevaPassword123', 10);
+await usersService.updatePassword(userId, hashedPassword);
+```
+
+**Nota**: Este método no requiere autenticación ya que se usa en el contexto de recuperación de contraseña donde el usuario no está autenticado.
+
+---
+
 ## Manejo de Campos `imageUrl` y `bio`
 
 Los campos `imageUrl` y `bio` están completamente integrados en el servicio:

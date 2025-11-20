@@ -36,8 +36,11 @@ Componente de barra de navegación superior que incluye el logo/nombre de la apl
 
 #### Información del Usuario
 - Muestra nombre o email del usuario
-- Avatar con iniciales si no hay imagen
+- Avatar con imagen de perfil usando `apiClient.getImageUrl(user.imageUrl)` si está disponible
+- Avatar con iniciales si no hay imagen (fallback)
 - Email del usuario en el dropdown
+- **Construcción de URLs**: Usa `apiClient.getImageUrl()` para construir URLs completas desde URLs relativas
+- **Actualización automática**: El avatar se actualiza automáticamente cuando se modifica la foto de perfil gracias a React Query
 
 #### Opciones del Menú
 1. **Mi Perfil** (`/profile`)
@@ -124,6 +127,11 @@ navigate('/login');
 ## Componentes Utilizados
 
 - **Avatar**: Componente reutilizable para mostrar la imagen del usuario
+  - Recibe `src` con `apiClient.getImageUrl(user.imageUrl)` para mostrar la foto de perfil
+  - Construye URLs completas desde URLs relativas automáticamente
+  - Soporta URLs relativas (`/images/users/uuid.jpg`), URLs completas y base64
+  - Muestra iniciales como fallback si no hay imagen
+  - Se actualiza automáticamente cuando cambia `user.imageUrl`
 - **Input**: Componente reutilizable para la barra de búsqueda
 - **Button**: No se usa directamente, pero el menú sigue el mismo estilo
 
@@ -161,11 +169,41 @@ El avatar en el menú de usuario tiene efectos hover interactivos:
 ## Notas Técnicas
 
 - Usa `useQuery` de TanStack Query para obtener datos del usuario
+- **Actualización automática del avatar**: Cuando se actualiza el perfil en `ProfileEditPage`, se invalida la query `['currentUser']`, lo que hace que el NavBar se actualice automáticamente y muestre la nueva imagen de perfil
 - `useRef` y `useEffect` para cerrar el dropdown al hacer clic fuera
 - `useNavigate` de React Router para navegación
 - `useAuth` hook para funcionalidad de logout
 - Estado local `isDropdownOpen` para controlar el menú
 - Usa `group` y `group-hover:` de Tailwind para efectos hover en elementos hijos
+
+## Actualización del Avatar
+
+El avatar en el NavBar se actualiza automáticamente cuando se modifica la foto de perfil:
+
+1. **Carga inicial**: Usa `useQuery` con `queryKey: ['currentUser']` para obtener los datos del usuario
+2. **Prop `src`**: El Avatar recibe `src={apiClient.getImageUrl((user as any)?.imageUrl) || undefined}` para mostrar la imagen de perfil
+3. **Construcción de URL**: `apiClient.getImageUrl()` convierte URLs relativas (`/images/users/uuid.jpg`) a URLs completas (`http://localhost:3006/images/users/uuid.jpg`)
+4. **Actualización**: Cuando se actualiza el perfil en `ProfileEditPage`, se invalida la query:
+   ```typescript
+   queryClient.invalidateQueries({ queryKey: ['currentUser'] });
+   ```
+4. **Refresco automático**: React Query automáticamente vuelve a ejecutar la query, obteniendo los datos actualizados del usuario
+5. **Re-render**: El NavBar se re-renderiza con los nuevos datos, mostrando la nueva imagen de perfil
+
+**Flujo completo:**
+```
+Usuario actualiza foto de perfil en ProfileEditPage
+    ↓
+ProfileEditPage invalida query ['currentUser']
+    ↓
+React Query detecta la invalidación
+    ↓
+NavBar automáticamente vuelve a ejecutar la query
+    ↓
+NavBar recibe datos actualizados con nueva imageUrl
+    ↓
+Avatar se actualiza con la nueva imagen
+```
 
 ## Mejoras Futuras
 

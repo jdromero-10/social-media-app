@@ -136,10 +136,11 @@ function LoginPage() {
 - Ejemplo: "El email debe ser válido", "La contraseña debe tener al menos 6 caracteres"
 
 ### Errores del Servidor (Backend)
-- Se muestran en un banner rojo arriba del formulario
+- Se muestran automáticamente usando el sistema de Toast global
 - Provienen de la respuesta del backend (ApiError)
 - Ejemplo: "Credenciales inválidas", "Usuario no encontrado"
 - **Mensaje adicional**: Si el error es de red (statusCode === 0), se muestra un mensaje adicional sugiriendo verificar la conexión y el servidor
+- **Implementación**: Usa `useToast` hook internamente y `useRef` para evitar bucles infinitos de actualización
 
 ## Estados del Botón
 
@@ -229,4 +230,6 @@ const loginSchema = yup.object({
 - El botón se deshabilita automáticamente cuando `isLoggingIn` es `true`
 - El `fullWidth` en el botón hace que ocupe todo el ancho del formulario
 - El `PasswordInput` usa `forwardRef` para compatibilidad completa con React Hook Form
+- **Manejo de errores**: Usa `useRef` para mantener una referencia estable a la función `showError` del hook `useToast`, evitando bucles infinitos de actualización cuando se muestra un error
+- **Toast global**: Los errores se muestran automáticamente usando el sistema de Toast global, no requiere props adicionales
 

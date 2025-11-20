@@ -13,4 +13,5 @@ export declare class UsersService {
     checkFieldUniqueness(field: 'email' | 'username', value: string): Promise<boolean>;
     deleteByEmail(email: string): Promise<boolean>;
     update(id: string, updateUserDto: UpdateUserDto, currentUser: User): Promise<User>;
+    updatePassword(userId: string, hashedPassword: string): Promise<User>;
 }

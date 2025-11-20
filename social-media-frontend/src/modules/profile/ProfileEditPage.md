@@ -67,24 +67,34 @@ const handleFileSelect = (file: File | null) => {
 };
 ```
 
-### 2. Conversión de Imagen
-Cuando se selecciona un archivo, se convierte a base64:
+### 2. Subida de Imagen
+Cuando se selecciona un archivo, se sube al servidor:
 
 ```typescript
 if (selectedFile) {
-  imageUrl = await new Promise<string>((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      const base64String = reader.result as string;
-      resolve(base64String);
-    };
-    reader.onerror = reject;
-    reader.readAsDataURL(selectedFile);
-  });
+  try {
+    const uploadResponse = await apiClient.uploadFile<{ imageUrl: string }>(
+      '/upload/user-avatar',
+      selectedFile,
+      'image',
+    );
+    imageUrl = uploadResponse.imageUrl; // "/images/users/uuid.jpg"
+  } catch (uploadError) {
+    // Manejar error de subida
+    showError('Error al subir la imagen. Intente de nuevo.');
+    return;
+  }
 }
 ```
 
-**Nota**: Esta es una solución temporal. En producción, se debe implementar un servicio de almacenamiento (S3, Cloudinary, etc.)
+**Endpoint**: `POST /upload/user-avatar`
+- **Autenticación**: Requerida (JWT)
+- **Content-Type**: `multipart/form-data`
+- **Campo**: `image` (File)
+- **Validaciones**: Tipo de imagen (JPEG, PNG, GIF, WebP), tamaño máximo 5MB
+- **Respuesta**: `{ imageUrl: "/images/users/uuid.jpg" }`
+
+**Nota**: La imagen se guarda en el sistema de archivos del backend, no en la base de datos.
 
 ### 3. Actualización de Perfil
 ```typescript
@@ -183,46 +193,34 @@ El botón "Guardar cambios" muestra un spinner y se deshabilita durante el enví
 ## Almacenamiento de Imágenes
 
 ### Implementación Actual
-- Las imágenes se convierten a base64 y se guardan directamente en el campo `imageUrl` de la base de datos
-- Formato: `data:image/[tipo];base64,[datos]`
+- Las imágenes se suben al servidor usando `POST /upload/user-avatar`
+- El servidor guarda el archivo en `images/users/uuid.jpg`
+- Se guarda solo la URL relativa (`/images/users/uuid.jpg`) en la base de datos
+- El frontend construye la URL completa usando `apiClient.getImageUrl()`
 
-### Limitaciones
-- **Tamaño**: Base64 aumenta el tamaño de la imagen en ~33%
-- **Rendimiento**: Las respuestas de la API pueden ser muy grandes
-- **Base de datos**: Almacenar imágenes grandes en la base de datos no es escalable
+### Flujo Completo
+1. Usuario selecciona imagen → Validación en frontend (tipo y tamaño)
+2. Al guardar → Subida a `/upload/user-avatar`
+3. Backend guarda → Archivo en `images/users/uuid.jpg`
+4. Backend retorna → URL relativa: `/images/users/uuid.jpg`
+5. Frontend actualiza → Perfil con la URL
+6. Frontend muestra → Usa `apiClient.getImageUrl()` para construir URL completa
 
-### Recomendación para Producción
-Implementar un servicio de almacenamiento en la nube:
+### Ventajas
+- **Base de datos ligera**: Solo almacena URLs, no datos binarios
+- **Mejor rendimiento**: URLs directas para acceso a imágenes
+- **Escalabilidad**: Fácil migrar a almacenamiento en la nube
+- **Caché**: Navegadores pueden cachear imágenes fácilmente
 
-1. **Opción 1: AWS S3**
-   - Subir imagen a S3
-   - Guardar URL de S3 en `imageUrl`
-   - Ventajas: Escalable, económico, confiable
+### Compatibilidad
+- El sistema sigue soportando imágenes en base64 (para compatibilidad con datos existentes)
+- `apiClient.getImageUrl()` detecta base64 y no lo modifica
+- Las nuevas imágenes se guardan como archivos
 
-2. **Opción 2: Cloudinary**
-   - Subir imagen a Cloudinary
-   - Guardar URL de Cloudinary en `imageUrl`
-   - Ventajas: Transformaciones automáticas, CDN incluido
-
-3. **Opción 3: Firebase Storage**
-   - Subir imagen a Firebase Storage
-   - Guardar URL de Firebase en `imageUrl`
-   - Ventajas: Integración fácil con Firebase
-
-### Implementación Futura
-```typescript
-// Endpoint en el backend: POST /users/upload-avatar
-const formData = new FormData();
-formData.append('image', selectedFile);
-
-const response = await apiClient.post<{ imageUrl: string }>(
-  '/users/upload-avatar',
-  formData
-);
-
-// Usar la URL retornada
-imageUrl = response.imageUrl;
-```
+### URLs de Imágenes
+- **Formato relativo**: `/images/users/uuid.jpg`
+- **Formato completo**: `http://localhost:3006/images/users/uuid.jpg`
+- **Construcción**: `apiClient.getImageUrl('/images/users/uuid.jpg')` → URL completa
 
 ## Rutas
 

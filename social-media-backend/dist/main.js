@@ -36,16 +36,32 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const common_1 = require("@nestjs/common");
 const core_1 = require("@nestjs/core");
 const cookieParser = __importStar(require("cookie-parser"));
+const path_1 = require("path");
 const app_module_1 = require("./app.module");
 async function bootstrap() {
     const app = await core_1.NestFactory.create(app_module_1.AppModule);
-    app.use(cookieParser.default());
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
     app.enableCors({
-        origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+        origin: frontendUrl,
         credentials: true,
         methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
         allowedHeaders: ['Content-Type', 'Authorization'],
     });
+    app.use('/images', (req, res, next) => {
+        res.header('Access-Control-Allow-Origin', frontendUrl);
+        res.header('Access-Control-Allow-Credentials', 'true');
+        res.header('Access-Control-Allow-Methods', 'GET, OPTIONS');
+        res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+        res.header('Access-Control-Expose-Headers', 'Content-Length, Content-Type');
+        if (req.method === 'OPTIONS') {
+            return res.status(200).end();
+        }
+        next();
+    });
+    app.useStaticAssets((0, path_1.join)(__dirname, '..', 'images'), {
+        prefix: '/images/',
+    });
+    app.use(cookieParser.default());
     app.useGlobalPipes(new common_1.ValidationPipe({
         whitelist: true,
         transform: true,

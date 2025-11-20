@@ -5,15 +5,15 @@ DTO (Data Transfer Object) para crear un nuevo post. Define la estructura de dat
 
 ## Campos
 
-### `title: string`
-- **Tipo**: String
-- **Requerido**: Sí
+### `title?: string | null`
+- **Tipo**: String o null
+- **Requerido**: No (opcional)
 - **Validaciones**:
-  - `@IsString()`: Debe ser una cadena de texto
-  - `@IsNotEmpty()`: No puede estar vacío
-  - `@MaxLength(255)`: Máximo 255 caracteres
-- **Descripción**: Título del post (obligatorio)
-- **Ejemplo**: `"Mi primera publicación"`
+  - `@IsString()`: Debe ser una cadena de texto si se proporciona
+  - `@IsOptional()`: Campo opcional
+  - `@MaxLength(255)`: Máximo 255 caracteres si se proporciona
+- **Descripción**: Título del post (opcional, no se usa en la nueva estructura)
+- **Nota**: Este campo se mantiene para compatibilidad pero no se utiliza en el formulario
 
 ### `description?: string | null`
 - **Tipo**: String o null
@@ -69,8 +69,8 @@ DTO (Data Transfer Object) para crear un nuevo post. Define la estructura de dat
 
 Si no se proporciona el campo `type`, el servicio automáticamente determina el tipo basado en los campos proporcionados:
 
-1. **Si hay `imageUrl` Y (`description` o `content`)**: `'text_with_image'`
-2. **Si hay `imageUrl` pero NO (`description` o `content`)**: `'image'`
+1. **Si hay `imageUrl` Y `content`**: `'text_with_image'`
+2. **Si hay `imageUrl` pero NO `content`**: `'image'`
 3. **Si NO hay `imageUrl`**: `'text'`
 
 ## Ejemplos de Uso
@@ -78,9 +78,7 @@ Si no se proporciona el campo `type`, el servicio automáticamente determina el 
 ### Post de Solo Texto
 ```typescript
 const createPostDto: CreatePostDto = {
-  title: 'Mi primera publicación',
-  description: 'Esta es una descripción',
-  content: 'Contenido completo del post...',
+  content: '¿Qué estás pensando?',
   type: 'text', // Opcional, se auto-detecta
 };
 ```
@@ -88,8 +86,7 @@ const createPostDto: CreatePostDto = {
 ### Post con Solo Imagen
 ```typescript
 const createPostDto: CreatePostDto = {
-  title: 'Mi foto del día',
-  imageUrl: '/uploads/posts/image-123.jpg',
+  imageUrl: '/images/posts/uuid.jpg',
   type: 'image', // Opcional, se auto-detecta
 };
 ```
@@ -97,10 +94,8 @@ const createPostDto: CreatePostDto = {
 ### Post con Imagen y Texto
 ```typescript
 const createPostDto: CreatePostDto = {
-  title: 'Mi experiencia hoy',
-  description: 'Compartiendo mi experiencia',
   content: 'Hoy fue un día increíble...',
-  imageUrl: '/uploads/posts/image-456.jpg',
+  imageUrl: '/images/posts/uuid.jpg',
   type: 'text_with_image', // Opcional, se auto-detecta
 };
 ```
@@ -108,19 +103,16 @@ const createPostDto: CreatePostDto = {
 ## Validaciones de Negocio
 
 ### Post de tipo 'text'
-- ✅ `title` es requerido
-- ✅ `description` o `content` debe tener al menos uno
+- ✅ `content` es requerido (o al menos contenido o imagen)
 - ✅ `imageUrl` debe ser null o no proporcionado
 
 ### Post de tipo 'image'
-- ✅ `title` es requerido
 - ✅ `imageUrl` es requerido
-- ✅ `description` o `content` pueden ser null
+- ✅ `content` puede ser null
 
 ### Post de tipo 'text_with_image'
-- ✅ `title` es requerido
 - ✅ `imageUrl` es requerido
-- ✅ `description` o `content` debe tener al menos uno
+- ✅ `content` es requerido
 
 ## Integración con el Servicio
 

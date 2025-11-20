@@ -22,8 +22,8 @@ export class Post {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ type: 'varchar', length: 255 })
-  title: string;
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  title: string | null;
 
   @Column({ type: 'text', nullable: true })
   description: string | null;

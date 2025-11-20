@@ -100,6 +100,14 @@ let UsersService = class UsersService {
         Object.assign(user, updateUserDto);
         return await this.usersRepository.save(user);
     }
+    async updatePassword(userId, hashedPassword) {
+        const user = await this.usersRepository.findOne({ where: { id: userId } });
+        if (!user) {
+            throw new common_1.NotFoundException(`Usuario con ID ${userId} no encontrado`);
+        }
+        user.password = hashedPassword;
+        return await this.usersRepository.save(user);
+    }
 };
 exports.UsersService = UsersService;
 exports.UsersService = UsersService = __decorate([
